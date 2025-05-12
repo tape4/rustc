@@ -6,7 +6,7 @@ use utils::collect_tokens;
 fn test_sample_c_tokens() {
     let src = include_str!("fixtures/sample.c");
     let mut l = Lexer::new(src);
-    let mut next_token = || l.next_token();
+    let mut next_token = || l.next_token().kind;
 
     // int add(int a, int b) {
     assert_eq!(next_token(), Token::Int);

@@ -7,6 +7,12 @@ pub enum LexError {
     InvalidNumericLiteral(String),
 }
 
+pub struct SpannedToken {
+    pub kind: Token,
+    pub line: usize,
+    pub column: usize,
+}
+
 /// Token types
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
@@ -42,6 +48,7 @@ pub enum Token {
     Not,       // !
     Ampersand, // &
     BitOr,     // |
+    BitXor,    // ^
 
     Semicolon, // ;
     Comma,     // ,
@@ -66,13 +73,16 @@ pub enum Token {
     Int,
     Char,
 
-
     Increment,      // ++
     Decrement,      // --
     PlusAssign,     // +=
     MinusAssign,    // -=
     AsteriskAssign, // *=
     SlashAssign,    // /=
+    ModuloAssign,   // %=
+    BitOrAssign,    // |=
+    BitAndAssign,   // &=
+    BitXorAssign,   // ^=
 }
 
 /// Lookup identifier keyword

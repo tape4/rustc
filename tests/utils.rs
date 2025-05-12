@@ -5,7 +5,7 @@ pub fn collect_tokens(input: &str) -> Vec<Token> {
     let mut l = Lexer::new(input);
     let mut tokens = Vec::new();
     loop {
-        let tok = l.next_token();
+        let tok = l.next_token().kind;
         tokens.push(tok.clone());
         if tok == Token::EOF {
             break;

@@ -1,4 +1,4 @@
-use super::token::{LexError, Token, lookup_ident};
+use super::token::{LexError, SpannedToken, Token, lookup_ident};
 
 /// 렉서 구조
 pub struct Lexer {
@@ -6,6 +6,8 @@ pub struct Lexer {
     pos: usize,       // current position
     read_pos: usize,  // next reading position
     ch: Option<char>, // current char
+    line: usize,      // current line
+    column: usize,    // current column
 }
 
 impl Lexer {
@@ -15,6 +17,8 @@ impl Lexer {
             pos: 0,
             read_pos: 0,
             ch: None,
+            line: 1,
+            column: 0,
         };
         l.read_char();
         l
@@ -22,6 +26,11 @@ impl Lexer {
 
     /// 다음 문자로 넘어가기
     fn read_char(&mut self) {
+        if let Some('\n') = self.ch {
+            self.line += 1;
+            self.column = 0;
+        }
+
         self.ch = if self.read_pos >= self.input.len() {
             None
         } else {
@@ -29,6 +38,7 @@ impl Lexer {
         };
         self.pos = self.read_pos;
         self.read_pos += 1;
+        self.column += 1;
     }
 
     /// 다음 문자 보기 (Consume) 없이
@@ -84,8 +94,11 @@ impl Lexer {
     }
 
     /// 다음 토큰 얻기
-    pub fn next_token(&mut self) -> Token {
+    pub fn next_token(&mut self) -> SpannedToken {
         self.skip_trivia();
+        let line = self.line;
+        let column = self.column;
+
         let tok = match self.ch {
             Some('+') => {
                 // ++
@@ -134,7 +147,14 @@ impl Lexer {
                     Token::Slash
                 }
             }
-            Some('%') => Token::Percent,
+            Some('%') => {
+                if self.peek_char() == Some('=') {
+                    self.read_char();
+                    Token::ModuloAssign
+                } else {
+                    Token::Percent
+                }
+            }
 
             Some('=') => {
                 if self.peek_char() == Some('=') {
@@ -144,6 +164,7 @@ impl Lexer {
                     Token::Assign
                 }
             }
+
             Some('!') => {
                 if self.peek_char() == Some('=') {
                     self.read_char();
@@ -173,6 +194,9 @@ impl Lexer {
                 if self.peek_char() == Some('&') {
                     self.read_char();
                     Token::And
+                } else if self.peek_char() == Some('=') {
+                    self.read_char();
+                    Token::BitAndAssign
                 } else {
                     Token::Ampersand
                 }
@@ -181,8 +205,19 @@ impl Lexer {
                 if self.peek_char() == Some('|') {
                     self.read_char();
                     Token::Or
+                } else if self.peek_char() == Some('=') {
+                    self.read_char();
+                    Token::BitOrAssign
                 } else {
                     Token::BitOr
+                }
+            }
+            Some('^') => {
+                if self.peek_char() == Some('=') {
+                    self.read_char();
+                    Token::BitXorAssign
+                } else {
+                    Token::BitXor
                 }
             }
 
@@ -196,25 +231,58 @@ impl Lexer {
             Some(']') => Token::RBracket,
 
             Some('\'') => match self.read_char_literal() {
-                Ok(ch) => return Token::CharLiteral(ch),
-                Err(e) => return Token::Error(e),
+                Ok(ch) => {
+                    return SpannedToken {
+                        kind: Token::CharLiteral(ch),
+                        line,
+                        column,
+                    };
+                }
+                Err(e) => {
+                    return SpannedToken {
+                        kind: Token::Error(e),
+                        line,
+                        column,
+                    };
+                }
             },
 
             Some(c) if c.is_alphabetic() || c == '_' => {
                 let ident = self.read_identifier();
-                return lookup_ident(&ident);
+                return SpannedToken {
+                    kind: lookup_ident(&ident),
+                    line,
+                    column,
+                };
             }
 
             Some(c) if c.is_numeric() => match self.read_number() {
-                Ok(num) => return Token::IntLiteral(num),
-                Err(e) => return Token::Error(e),
+                Ok(num) => {
+                    return SpannedToken {
+                        kind: Token::IntLiteral(num),
+                        line,
+                        column,
+                    };
+                }
+                Err(e) => {
+                    return SpannedToken {
+                        kind: Token::Error(e),
+                        line,
+                        column,
+                    };
+                }
             },
 
             None => Token::EOF,
             Some(c) => Token::Illegal(c),
         };
+
         self.read_char();
-        tok
+        SpannedToken {
+            kind: tok,
+            line: self.line,
+            column: self.column,
+        }
     }
 
     fn read_identifier(&mut self) -> String {
