@@ -87,10 +87,53 @@ impl Lexer {
     pub fn next_token(&mut self) -> Token {
         self.skip_trivia();
         let tok = match self.ch {
-            Some('+') => Token::Plus,
-            Some('-') => Token::Minus,
-            Some('*') => Token::Asterisk,
-            Some('/') => Token::Slash,
+            Some('+') => {
+                // ++
+                if self.peek_char() == Some('+') {
+                    self.read_char();
+                    Token::Increment
+                // +=
+                } else if self.peek_char() == Some('=') {
+                    self.read_char();
+                    Token::PlusAssign
+                // +
+                } else {
+                    Token::Plus
+                }
+            }
+
+            Some('-') => {
+                // --
+                if self.peek_char() == Some('-') {
+                    self.read_char();
+                    Token::Decrement
+                // -=
+                } else if self.peek_char() == Some('=') {
+                    self.read_char();
+                    Token::MinusAssign
+                // -
+                } else {
+                    Token::Minus
+                }
+            }
+
+            Some('*') => {
+                if self.peek_char() == Some('=') {
+                    self.read_char();
+                    Token::AsteriskAssign
+                } else {
+                    Token::Asterisk
+                }
+            }
+
+            Some('/') => {
+                if self.peek_char() == Some('=') {
+                    self.read_char();
+                    Token::SlashAssign
+                } else {
+                    Token::Slash
+                }
+            }
             Some('%') => Token::Percent,
 
             Some('=') => {

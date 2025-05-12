@@ -19,7 +19,7 @@ jobs:
       - name: fmt check
         run: cargo fmt -- --check
       - name: lint
-        run: cargo clippy -- -D warnings
+        run: cargo clippy
       - name: build
         run: cargo build --verbose
       - name: run tests

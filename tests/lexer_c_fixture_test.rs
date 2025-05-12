@@ -46,9 +46,28 @@ fn test_sample_c_tokens() {
     assert_eq!(next_token(), Token::IntLiteral(1));
     assert_eq!(next_token(), Token::Semicolon);
 
-    // todo
     //    for (int i = 1; i <= n; ++i) {
+    assert_eq!(next_token(), Token::For);
+    assert_eq!(next_token(), Token::LParen);
+    assert_eq!(next_token(), Token::Int);
+    assert_eq!(next_token(), Token::Ident("i".into()));
+    assert_eq!(next_token(), Token::Assign);
+    assert_eq!(next_token(), Token::IntLiteral(1));
+    assert_eq!(next_token(), Token::Semicolon);
+    assert_eq!(next_token(), Token::Ident("i".into()));
+    assert_eq!(next_token(), Token::Le);
+    assert_eq!(next_token(), Token::Ident("n".into()));
+    assert_eq!(next_token(), Token::Semicolon);
+    assert_eq!(next_token(), Token::Increment);
+    assert_eq!(next_token(), Token::Ident("i".into()));
+    assert_eq!(next_token(), Token::RParen);
+    assert_eq!(next_token(), Token::LBrace);
+
     //        result *= i;
+    assert_eq!(next_token(), Token::Ident("result".into()));
+    assert_eq!(next_token(), Token::AsteriskAssign);
+    assert_eq!(next_token(), Token::Ident("i".into()));
+    assert_eq!(next_token(), Token::Semicolon);
 
     // }
     assert_eq!(next_token(), Token::RBrace);
@@ -184,23 +203,22 @@ fn test_sample_c_tokens() {
     assert_eq!(next_token(), Token::RBracket);
     assert_eq!(next_token(), Token::Semicolon);
 
-    // todo
     //     for (int i = 0; i < 3; i++) {
-    // assert_eq!(next_token(), Token::For);
-    // assert_eq!(next_token(), Token::LParen);
-    // assert_eq!(next_token(), Token::Int);
-    // assert_eq!(next_token(), Token::Ident("i".into()));
-    // assert_eq!(next_token(), Token::Assign);
-    // assert_eq!(next_token(), Token::IntLiteral(0));
-    // assert_eq!(next_token(), Token::Semicolon);
-    // assert_eq!(next_token(), Token::Ident("i".into()));
-    // assert_eq!(next_token(), Token::Lt);
-    // assert_eq!(next_token(), Token::IntLiteral(3));
-    // assert_eq!(next_token(), Token::Semicolon);
-    // assert_eq!(next_token(), Token::Ident("i".into()));
-    // assert_eq!(next_token(), Token::PlusPlus);
-    // assert_eq!(next_token(), Token::RParen);
-    // assert_eq!(next_token(), Token::LBrace);
+    assert_eq!(next_token(), Token::For);
+    assert_eq!(next_token(), Token::LParen);
+    assert_eq!(next_token(), Token::Int);
+    assert_eq!(next_token(), Token::Ident("i".into()));
+    assert_eq!(next_token(), Token::Assign);
+    assert_eq!(next_token(), Token::IntLiteral(0));
+    assert_eq!(next_token(), Token::Semicolon);
+    assert_eq!(next_token(), Token::Ident("i".into()));
+    assert_eq!(next_token(), Token::Lt);
+    assert_eq!(next_token(), Token::IntLiteral(3));
+    assert_eq!(next_token(), Token::Semicolon);
+    assert_eq!(next_token(), Token::Ident("i".into()));
+    assert_eq!(next_token(), Token::Increment);
+    assert_eq!(next_token(), Token::RParen);
+    assert_eq!(next_token(), Token::LBrace);
 
     //         arr2[i] = i * 2;
     assert_eq!(next_token(), Token::Ident("arr2".into()));
@@ -216,12 +234,35 @@ fn test_sample_c_tokens() {
     //     }
     assert_eq!(next_token(), Token::RBrace);
 
-    // todo
     //    *p += 10;
+    assert_eq!(next_token(), Token::Asterisk);
+    assert_eq!(next_token(), Token::Ident("p".into()));
+    assert_eq!(next_token(), Token::PlusAssign);
+    assert_eq!(next_token(), Token::IntLiteral(10));
+    assert_eq!(next_token(), Token::Semicolon);
+
     //    x -= 5;
+    assert_eq!(next_token(), Token::Ident("x".into()));
+    assert_eq!(next_token(), Token::MinusAssign);
+    assert_eq!(next_token(), Token::IntLiteral(5));
+    assert_eq!(next_token(), Token::Semicolon);
+
     //    x++;
+    assert_eq!(next_token(), Token::Ident("x".into()));
+    assert_eq!(next_token(), Token::Increment);
+    assert_eq!(next_token(), Token::Semicolon);
     //    ++x;
+    assert_eq!(next_token(), Token::Increment);
+    assert_eq!(next_token(), Token::Ident("x".into()));
+    assert_eq!(next_token(), Token::Semicolon);
     //    --x;
+    assert_eq!(next_token(), Token::Decrement);
+    assert_eq!(next_token(), Token::Ident("x".into()));
+    assert_eq!(next_token(), Token::Semicolon);
+    //    x--
+    assert_eq!(next_token(), Token::Ident("x".into()));
+    assert_eq!(next_token(), Token::Decrement);
+    assert_eq!(next_token(), Token::Semicolon);
 
     //     if (x > 10 && x < 100) {
     assert_eq!(next_token(), Token::If);
@@ -318,11 +359,10 @@ fn test_sample_c_tokens() {
     assert_eq!(next_token(), Token::RParen);
     assert_eq!(next_token(), Token::LBrace);
 
-    // todo
-    //             count++;
-    // assert_eq!(next_token(), Token::Ident("count".into()));
-    // assert_eq!(next_token(), Token::PlusPlus);
-    // assert_eq!(next_token(), Token::Semicolon);
+    // count++;
+    assert_eq!(next_token(), Token::Ident("count".into()));
+    assert_eq!(next_token(), Token::Increment);
+    assert_eq!(next_token(), Token::Semicolon);
 
     //             continue;
     assert_eq!(next_token(), Token::Continue);
@@ -345,8 +385,11 @@ fn test_sample_c_tokens() {
 
     assert_eq!(next_token(), Token::RBrace);
 
-    // todo
     //        count += 1;
+    assert_eq!(next_token(), Token::Ident("count".into()));
+    assert_eq!(next_token(), Token::PlusAssign);
+    assert_eq!(next_token(), Token::IntLiteral(1));
+    assert_eq!(next_token(), Token::Semicolon);
 
     //         }
     assert_eq!(next_token(), Token::RBrace);

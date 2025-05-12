@@ -65,10 +65,14 @@ pub enum Token {
     // Types
     Int,
     Char,
-    // Increment,      // ++
-    // Decrement,      // --
-    // PlusAssign,     // +=
-    // MinusAssign,    // -=
+
+
+    Increment,      // ++
+    Decrement,      // --
+    PlusAssign,     // +=
+    MinusAssign,    // -=
+    AsteriskAssign, // *=
+    SlashAssign,    // /=
 }
 
 /// Lookup identifier keyword
