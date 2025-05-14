@@ -57,7 +57,7 @@ impl Parser {
             let name = self.expect_ident()?;
             params.push(Parameter { name, ty });
 
-            // 쉼표 혹은 ')'
+            // ',' 혹은 ')'
             match self.current_token() {
                 Token::Comma => {
                     self.next_token();

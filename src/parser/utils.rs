@@ -12,6 +12,24 @@ impl Parser {
         }
     }
 
+    pub fn expect_int_literal(&mut self) -> ParseResult<i64> {
+        if let Token::IntLiteral(value) = self.current_token().clone() {
+            self.next_token();
+            Ok(value)
+        } else {
+            self.unexpected_token(Token::IntLiteral(0))
+        }
+    }
+
+    pub fn expect_char_literal(&mut self) -> ParseResult<char> {
+        if let Token::CharLiteral(value) = self.current_token().clone() {
+            self.next_token();
+            Ok(value)
+        } else {
+            self.unexpected_token(Token::CharLiteral(' '))
+        }
+    }
+
     pub fn current_token(&self) -> &Token {
         &self
             .tokens

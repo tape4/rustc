@@ -5,11 +5,11 @@ pub enum Expr {
     CharLiteral(char),
 
     // 단항연산자
-    PrefixOp {
+    UnaryPrefixOp {
         op: PrefixOp,
         rhs: Box<Expr>,
     },
-    PostfixOp {
+    UnaryPostfixOp {
         lhs: Box<Expr>,
         op: PostfixOp,
     },
@@ -74,10 +74,13 @@ pub enum BinaryOp {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum AssignOp {
-    Assign,      // =
-    PlusAssign,  // +=
-    MinusAssign, // -=
-    MulAssign,   // *=
-    DivAssign,   // /=
-    RemAssign,   // &=
+    Assign,       // =
+    PlusAssign,   // +=
+    MinusAssign,  // -=
+    MulAssign,    // *=
+    DivAssign,    // /=
+    RemAssign,    // %=
+    BitAndAssign, // &=
+    BitOrAssign,  // |=
+    BitXorAssign, // ^=
 }
