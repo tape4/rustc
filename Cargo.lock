@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "rustc-tape4"
+name = "rustc_tape4"
 version = "0.1.0"
