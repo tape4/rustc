@@ -19,7 +19,7 @@ pub enum Stmt {
         body: Box<Stmt>,
     },
     For {
-        init: Option<Expr>,
+        init: Option<Box<Stmt>>,
         cond: Option<Expr>,
         step: Option<Expr>,
         body: Box<Stmt>,
@@ -29,10 +29,16 @@ pub enum Stmt {
     Continue,
     Declaration {
         ty: TypeSpecifier,
-        name: String,
-        init: Option<Expr>,
+        declarators: Vec<Declarator>,
     },
-    ExprStmt(Expr),
+    ExprStmt(Option<Expr>),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Declarator {
+    pub name: String,
+    pub array_size: Option<i64>,
+    pub init: Option<Expr>,
 }
 
 // 문장: 구문들

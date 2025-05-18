@@ -1,10 +1,8 @@
-mod utils;
 use rustc_tape4::lexer::{Lexer, Token};
-use utils::collect_tokens;
 
 #[test]
 fn test_sample_c_tokens() {
-    let src = include_str!("fixtures/sample.c");
+    let src = include_str!("../fixtures/sample.c");
     let mut l = Lexer::new(src);
     let mut next_token = || l.next_token().kind;
 
@@ -325,7 +323,7 @@ fn test_sample_c_tokens() {
     assert_eq!(next_token(), Token::Ident("oct".into()));
     assert_eq!(next_token(), Token::Semicolon);
 
-    //     int b_or  = x | oct;
+    //     int b_or = x | oct;
     assert_eq!(next_token(), Token::Int);
     assert_eq!(next_token(), Token::Ident("b_or".into()));
     assert_eq!(next_token(), Token::Assign);

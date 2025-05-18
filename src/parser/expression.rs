@@ -5,11 +5,12 @@ use crate::parser::Parser;
 use crate::parser::parser::ParseResult;
 
 impl Parser {
+    /// expression ::= assignment
     pub fn parse_expr(&mut self) -> ParseResult<Expr> {
         self.parse_assignment()
     }
 
-    // assignment ::= logical_or ( ( "="  | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "|=" | "^=" ) assignment )?
+    /// assignment ::= logical_or ( ( "="  | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "|=" | "^=" ) assignment )?
     fn parse_assignment(&mut self) -> ParseResult<Expr> {
         let mut lhs = self.parse_logical_or()?;
         let op = match self.current_token() {
@@ -30,6 +31,16 @@ impl Parser {
 
         // 할당 연산자 소비
         self.next_token();
+        match &lhs {
+            Expr::Ident(_)
+            | Expr::UnaryPrefixOp {
+                op: PrefixOp::Deref,
+                ..
+            }
+            | Expr::ArrayIndex { .. } => {}
+            _ => return self.unsupported_token(),
+        }
+
         let rhs = self.parse_assignment()?;
 
         lhs = Expr::Assignment {
@@ -40,7 +51,7 @@ impl Parser {
         Ok(lhs)
     }
 
-    // unary ::= ( "!" | "-" | "&" | "*" | "++" | "--" ) unary | postfix
+    /// unary ::= ( "!" | "-" | "&" | "*" | "++" | "--" ) unary | postfix
     fn parse_unary(&mut self) -> ParseResult<Expr> {
         let op = match self.current_token() {
             Token::Not => PrefixOp::Not,
@@ -59,7 +70,7 @@ impl Parser {
         })
     }
 
-    // multiplicative ::= unary ( ( "*" | "/" | "%" ) unary )*
+    /// multiplicative ::= unary ( ( "*" | "/" | "%" ) unary )*
     fn parse_multiplicative(&mut self) -> ParseResult<Expr> {
         let mut expr = self.parse_unary()?;
 
@@ -82,7 +93,7 @@ impl Parser {
         Ok(expr)
     }
 
-    // additive ::= multiplicative ( ( "+" | "-" ) multiplicative )*
+    /// additive ::= multiplicative ( ( "+" | "-" ) multiplicative )*
     fn parse_additive(&mut self) -> ParseResult<Expr> {
         let mut expr = self.parse_multiplicative()?;
 
@@ -104,7 +115,7 @@ impl Parser {
         Ok(expr)
     }
 
-    // relational ::= additive ( ( "<" | "<=" | ">" | ">=" ) additive )*
+    /// relational ::= additive ( ( "<" | "<=" | ">" | ">=" ) additive )*
     fn parse_relational(&mut self) -> ParseResult<Expr> {
         let mut expr = self.parse_additive()?;
 
@@ -128,7 +139,7 @@ impl Parser {
         Ok(expr)
     }
 
-    // equality ::= relational ( ( "==" | "!=" ) relational )*
+    /// equality ::= relational ( ( "==" | "!=" ) relational )*
     fn parse_equality(&mut self) -> ParseResult<Expr> {
         let mut expr = self.parse_relational()?;
         loop {
@@ -149,13 +160,13 @@ impl Parser {
         Ok(expr)
     }
 
-    // logical_and ::= equality ( "&&" equality )*
+    /// logical_and ::= bitwise_or ( "&&" bitwise_or )*
     fn parse_logical_and(&mut self) -> ParseResult<Expr> {
-        let mut expr = self.parse_equality()?;
+        let mut expr = self.parse_bitwise_or()?;
 
         while self.current_token() == &Token::And {
             self.next_token(); // '&&' 소비
-            let rhs = self.parse_equality()?;
+            let rhs = self.parse_bitwise_or()?;
             expr = Expr::BinaryOp {
                 lhs: Box::new(expr),
                 op: BinaryOp::And,
@@ -166,7 +177,52 @@ impl Parser {
         Ok(expr)
     }
 
-    // logical_or ::= logical_and ( "||" logical_and )*
+    /// bitwise_or ::= bitwise_xor ( "|" bitwise_xor )*
+    fn parse_bitwise_or(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.parse_bitwise_xor()?;
+        while self.current_token() == &Token::BitOr {
+            self.next_token();
+            let rhs = self.parse_bitwise_xor()?;
+            expr = Expr::BinaryOp {
+                lhs: Box::new(expr),
+                op: BinaryOp::BitOr,
+                rhs: Box::new(rhs),
+            };
+        }
+        Ok(expr)
+    }
+
+    /// bitwise_xor ::= bitwise_and ( "^" bitwise_and )*
+    fn parse_bitwise_xor(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.parse_bitwise_and()?;
+        while self.current_token() == &Token::BitXor {
+            self.next_token();
+            let rhs = self.parse_bitwise_and()?;
+            expr = Expr::BinaryOp {
+                lhs: Box::new(expr),
+                op: BinaryOp::BitXor,
+                rhs: Box::new(rhs),
+            };
+        }
+        Ok(expr)
+    }
+
+    /// bitwise_and ::= equality ( "&" equality )*
+    fn parse_bitwise_and(&mut self) -> ParseResult<Expr> {
+        let mut expr = self.parse_equality()?;
+        while self.current_token() == &Token::Ampersand {
+            self.next_token();
+            let rhs = self.parse_equality()?;
+            expr = Expr::BinaryOp {
+                lhs: Box::new(expr),
+                op: BinaryOp::BitAnd,
+                rhs: Box::new(rhs),
+            };
+        }
+        Ok(expr)
+    }
+
+    /// logical_or ::= logical_and ( "||" logical_and )*
     fn parse_logical_or(&mut self) -> ParseResult<Expr> {
         let mut expr = self.parse_logical_and()?;
 
@@ -183,11 +239,8 @@ impl Parser {
         Ok(expr)
     }
 
-    /// primary + (postfix_op)*
-    /// postfix_op ::= "(" argument_list? ")"   (함수 호출)
-    ///              | "[" expression "]"        (배열 인덱싱)
-    ///              | "++"                       (후위 증가)
-    ///              | "--"                       (후위 감소)
+    /// postfix ::= primary postfix_op*
+    /// postfix_op ::= "(" argument_list? ")" | "[" expression "]" | "++" | "--"
     fn parse_postfix(&mut self) -> ParseResult<Expr> {
         let mut expr = self.parse_primary()?;
 
@@ -195,6 +248,12 @@ impl Parser {
             expr = match self.current_token() {
                 Token::LParen => {
                     self.next_token(); // '('
+
+                    // 첫 토큰이 쉼표 UnexpectedToken
+                    if self.current_token() == &Token::Comma {
+                        return self.unexpected_token(Token::Ident(String::from("expression")));
+                    }
+
                     let args = if self.current_token() != &Token::RParen {
                         let mut v = Vec::new();
                         loop {
@@ -248,25 +307,27 @@ impl Parser {
         Ok(expr)
     }
 
-    // primary ::= identifier | int_literal | char_literal | "(" expression ")"
+    /// primary ::= identifier | int_literal | char_literal | "(" expression ")" | "{" initializer_list? "}"
     fn parse_primary(&mut self) -> ParseResult<Expr> {
         let expr = match self.current_token() {
-            Token::Ident(_) => Expr::Ident(self.expect_ident()?),
-            Token::IntLiteral(_) => Expr::IntLiteral(self.expect_int_literal()?),
-            Token::CharLiteral(_) => Expr::CharLiteral(self.expect_char_literal()?),
+            Token::Ident(_) => self.parse_identifier()?,
+            Token::IntLiteral(_) => self.parse_int_literal()?,
+            Token::CharLiteral(_) => self.parse_char_literal()?,
             Token::LParen => {
                 self.next_token(); // '('
                 let e = self.parse_expr()?;
                 self.expect(Token::RParen)?;
                 e
             }
+            Token::LBrace => self.parse_initializer_list()?,
+            Token::EOF => return self.unexpected_eof("primary expression"),
             _ => return self.unsupported_token(),
         };
         Ok(expr)
     }
 
-    // initializer ::= expression | "{" initializer_list? "}"
-    fn parse_initializer(&mut self) -> ParseResult<Expr> {
+    /// initializer ::= expression | "{" initializer_list? "}"
+    pub fn parse_initializer(&mut self) -> ParseResult<Expr> {
         if self.current_token() == &Token::LBrace {
             self.parse_initializer_list()
         } else {
@@ -274,7 +335,7 @@ impl Parser {
         }
     }
 
-    // initializer_list ::= initializer ( "," initializer )* ","?
+    /// initializer_list ::= initializer ( "," initializer )* ","?
     fn parse_initializer_list(&mut self) -> ParseResult<Expr> {
         self.expect(Token::LBrace)?; // '{' 소비
         let mut exprs = Vec::new();
@@ -301,16 +362,19 @@ impl Parser {
         self.expect(Token::RBrace)?; // '}' 소비
         Ok(Expr::InitializerList(exprs))
     }
+    /// char_literal ::= /* CharLiteral(char) */
     fn parse_char_literal(&mut self) -> ParseResult<Expr> {
         let value = self.expect_char_literal()?;
         Ok(Expr::CharLiteral(value))
     }
 
+    /// int_literal ::= /* IntLiteral(i64) */
     fn parse_int_literal(&mut self) -> ParseResult<Expr> {
         let value = self.expect_int_literal()?;
         Ok(Expr::IntLiteral(value))
     }
 
+    /// identifier ::= /* Ident(String) */
     fn parse_identifier(&mut self) -> ParseResult<Expr> {
         let string = self.expect_ident()?;
         Ok(Expr::Ident(string))

@@ -12,6 +12,7 @@ A learning‐by‐doing project
 - **Basic types**  
   - `int` (32‑bit signed)  
   - `char` (8‑bit signed)  
+  - `void`   
 
 - **Derived types**  
   - Single‑level pointers (`int*`, `char*`)  
@@ -29,7 +30,7 @@ A learning‐by‐doing project
   - Arithmetic: `+`, `-`, `*`, `/`, `%`  
   - Comparison: `==`, `!=`, `<`, `>`, `<=`, `>=`  
   - Logical: `!`, `&&`, `||`  
-  - Bitwise: `&`, `|`  
+  - Bitwise: `&`, `|`, `^`
   - Compound assignment: `+=`, `-=`  
   - Increment / decrement: `++`, `--`  
   - Assignment: `=`  

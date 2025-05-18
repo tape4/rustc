@@ -1,6 +1,4 @@
-use crate::ast::functions::Parameter;
-use crate::ast::stmt::Block;
-use crate::ast::{Function, Program, Stmt, TypeSpecifier};
+use crate::ast::Program;
 use crate::lexer::Token;
 use crate::lexer::token::SpannedToken;
 use crate::parser::error::ParserError;
@@ -17,11 +15,12 @@ impl Parser {
         Parser { tokens, pos: 0 }
     }
 
+    /// program ::= function_definition*
     pub fn parse_program(&mut self) -> ParseResult<Program> {
         let mut functions = Vec::new();
         while self.current_token() != &Token::EOF {
-            // 토큰이 'int'|'char' 시작이면 함수 정의
-            let func = self.parse_function_definition()?;
+            // 토큰이 'int'|'char'|'void' 시작이면 함수 정의
+            let func = self.parse_function()?;
             functions.push(func);
         }
         Ok(Program { functions })

@@ -1,6 +1,5 @@
-mod utils;
-use rustc_tape4::lexer::{LexError, Lexer, Token};
-use utils::collect_tokens;
+use crate::utils::collect_tokens;
+use rustc_tape4::lexer::{LexError, Token};
 
 #[test]
 fn simple_tokens() {

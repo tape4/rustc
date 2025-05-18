@@ -4,29 +4,38 @@ use crate::parser::parser::ParseResult;
 
 impl Parser {
     pub fn expect_ident(&mut self) -> ParseResult<String> {
-        if let Token::Ident(name) = self.current_token().clone() {
-            self.next_token();
-            Ok(name.clone())
-        } else {
-            self.unexpected_token(Token::Ident(String::from("Identifier")))
+        let tok = self.current_token().clone();
+        match tok {
+            Token::EOF => self.unexpected_eof("identifier"),
+            Token::Ident(name) => {
+                self.next_token();
+                Ok(name)
+            }
+            other => self.unexpected_token(other),
         }
     }
 
     pub fn expect_int_literal(&mut self) -> ParseResult<i64> {
-        if let Token::IntLiteral(value) = self.current_token().clone() {
-            self.next_token();
-            Ok(value)
-        } else {
-            self.unexpected_token(Token::IntLiteral(0))
+        let tok = self.current_token().clone();
+        match tok {
+            Token::EOF => self.unexpected_eof("integer literal"),
+            Token::IntLiteral(value) => {
+                self.next_token();
+                Ok(value)
+            }
+            other => self.unexpected_token(other),
         }
     }
 
     pub fn expect_char_literal(&mut self) -> ParseResult<char> {
-        if let Token::CharLiteral(value) = self.current_token().clone() {
-            self.next_token();
-            Ok(value)
-        } else {
-            self.unexpected_token(Token::CharLiteral(' '))
+        let tok = self.current_token().clone();
+        match tok {
+            Token::EOF => self.unexpected_eof("char literal"),
+            Token::CharLiteral(value) => {
+                self.next_token();
+                Ok(value)
+            }
+            other => self.unexpected_token(other),
         }
     }
 
@@ -64,6 +73,8 @@ impl Parser {
         if self.current_token() == &expected {
             self.next_token();
             Ok(())
+        } else if self.current_token() == &Token::EOF {
+            self.unexpected_eof(format!("`{:?}`", expected))
         } else {
             self.unexpected_token(expected)
         }

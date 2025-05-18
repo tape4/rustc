@@ -24,6 +24,18 @@ impl Lexer {
         l
     }
 
+    pub fn collect_spanned_tokens(&mut self) -> Vec<SpannedToken> {
+        let mut tokens = vec![];
+        loop {
+            let token = self.next_token();
+            tokens.push(token.clone());
+            if token.kind == Token::EOF {
+                break;
+            }
+        }
+        tokens
+    }
+
     /// 다음 문자로 넘어가기
     fn read_char(&mut self) {
         if let Some('\n') = self.ch {
@@ -230,20 +242,20 @@ impl Lexer {
             Some('[') => Token::LBracket,
             Some(']') => Token::RBracket,
 
-            Some('\'') => match self.read_char_literal() {
+            Some('\'') => return match self.read_char_literal() {
                 Ok(ch) => {
-                    return SpannedToken {
+                    SpannedToken {
                         kind: Token::CharLiteral(ch),
                         line,
                         column,
-                    };
+                    }
                 }
                 Err(e) => {
-                    return SpannedToken {
+                    SpannedToken {
                         kind: Token::Error(e),
                         line,
                         column,
-                    };
+                    }
                 }
             },
 
@@ -256,20 +268,20 @@ impl Lexer {
                 };
             }
 
-            Some(c) if c.is_numeric() => match self.read_number() {
+            Some(c) if c.is_numeric() => return match self.read_number() {
                 Ok(num) => {
-                    return SpannedToken {
+                    SpannedToken {
                         kind: Token::IntLiteral(num),
                         line,
                         column,
-                    };
+                    }
                 }
                 Err(e) => {
-                    return SpannedToken {
+                    SpannedToken {
                         kind: Token::Error(e),
                         line,
                         column,
-                    };
+                    }
                 }
             },
 

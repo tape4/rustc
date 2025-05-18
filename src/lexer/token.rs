@@ -7,6 +7,7 @@ pub enum LexError {
     InvalidNumericLiteral(String),
 }
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct SpannedToken {
     pub kind: Token,
     pub line: usize,
@@ -72,6 +73,7 @@ pub enum Token {
     // Types
     Int,
     Char,
+    Void,
 
     Increment,      // ++
     Decrement,      // --
@@ -90,6 +92,7 @@ pub fn lookup_ident(ident: &str) -> Token {
     match ident {
         "int" => Token::Int,
         "char" => Token::Char,
+        "void" => Token::Void,
         "if" => Token::If,
         "else" => Token::Else,
         "while" => Token::While,
