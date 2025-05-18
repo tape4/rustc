@@ -242,22 +242,20 @@ impl Lexer {
             Some('[') => Token::LBracket,
             Some(']') => Token::RBracket,
 
-            Some('\'') => return match self.read_char_literal() {
-                Ok(ch) => {
-                    SpannedToken {
+            Some('\'') => {
+                return match self.read_char_literal() {
+                    Ok(ch) => SpannedToken {
                         kind: Token::CharLiteral(ch),
                         line,
                         column,
-                    }
-                }
-                Err(e) => {
-                    SpannedToken {
+                    },
+                    Err(e) => SpannedToken {
                         kind: Token::Error(e),
                         line,
                         column,
-                    }
-                }
-            },
+                    },
+                };
+            }
 
             Some(c) if c.is_alphabetic() || c == '_' => {
                 let ident = self.read_identifier();
@@ -268,22 +266,20 @@ impl Lexer {
                 };
             }
 
-            Some(c) if c.is_numeric() => return match self.read_number() {
-                Ok(num) => {
-                    SpannedToken {
+            Some(c) if c.is_numeric() => {
+                return match self.read_number() {
+                    Ok(num) => SpannedToken {
                         kind: Token::IntLiteral(num),
                         line,
                         column,
-                    }
-                }
-                Err(e) => {
-                    SpannedToken {
+                    },
+                    Err(e) => SpannedToken {
                         kind: Token::Error(e),
                         line,
                         column,
-                    }
-                }
-            },
+                    },
+                };
+            }
 
             None => Token::EOF,
             Some(c) => Token::Illegal(c),
