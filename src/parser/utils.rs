@@ -1,3 +1,4 @@
+use crate::ast::program::Pos;
 use crate::lexer::Token;
 use crate::parser::Parser;
 use crate::parser::parser::ParseResult;
@@ -78,5 +79,18 @@ impl Parser {
         } else {
             self.unexpected_token(expected)
         }
+    }
+
+    /// 아직 소비되지 않은 현재 토큰의 위치
+    pub fn start_pos(&self) -> Pos {
+        let st = &self.tokens[self.pos];
+        Pos::new(st.line, st.column)
+    }
+
+    /// 직전에 소비된 토큰의 위치
+    pub fn end_pos(&self) -> Pos {
+        let idx = self.pos.saturating_sub(1);
+        let st = &self.tokens[idx];
+        Pos::new(st.line, st.column)
     }
 }

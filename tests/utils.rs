@@ -33,12 +33,6 @@ pub fn parse_expression(input: &str) -> Expr {
     let mut lexer = Lexer::new(input);
     let tokens = lexer.collect_spanned_tokens();
 
-    // 디버깅용: 토큰 출력
-    println!(
-        "파싱할 토큰: {:?}",
-        tokens.iter().map(|t| &t.kind).collect::<Vec<_>>()
-    );
-
     let mut parser = Parser::new(tokens);
     match parser.parse_expr() {
         Ok(expr) => expr,
@@ -59,12 +53,6 @@ pub fn parse_statement(input: &str) -> Stmt {
 
     let mut lexer = Lexer::new(&input);
     let tokens = lexer.collect_spanned_tokens();
-
-    // 디버깅용: 토큰 출력
-    println!(
-        "파싱할 토큰: {:?}",
-        tokens.iter().map(|t| &t.kind).collect::<Vec<_>>()
-    );
 
     let mut parser = Parser::new(tokens);
     match parser.parse_statement() {

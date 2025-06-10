@@ -39,7 +39,7 @@ expression_statement  ::= expression? ";"
 
 if_statement          ::= "if" "(" expression ")" statement ( "else" statement )?  
 while_statement       ::= "while" "(" expression ")" statement  
-for_statement         ::= "for" "(" expression? ";" expression? ";" expression? ")" statement  
+for_statement         ::= "for" "(" (declaration_statement | expression)? ";" expression? ";" expression? ")" statement  
 return_statement      ::= "return" expression? ";"  
 break_statement       ::= "break" ";"  
 continue_statement    ::= "continue" ";"  

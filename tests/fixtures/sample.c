@@ -67,3 +67,15 @@ int main() {
 
     return 0;
 }
+
+void new() {
+    int count = 3;
+    int n_count = 4;
+    for (int i = -3; i < 5; i++) {
+        count += 1;
+    }
+
+    int a = '3';
+
+    count = count+++n_count;
+}
