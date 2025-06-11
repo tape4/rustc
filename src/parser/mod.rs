@@ -1,11 +1,9 @@
-#[macro_use]
+mod error;
 mod error_helpers;
-pub mod error;
-pub mod utils;
-
-pub mod expression;
-pub mod function;
-pub mod parser;
-pub mod statements;
-
+mod expression;
+mod function;
+mod parser;
+mod statements;
+mod utils;
+pub use parser::ParseResult;
 pub use parser::Parser;

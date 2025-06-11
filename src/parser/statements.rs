@@ -1,7 +1,7 @@
 use crate::ast::Stmt;
 use crate::ast::Stmt::{Break, For, Return, While};
 use crate::ast::stmt::{Block, Declarator};
-use crate::lexer::Token;
+use crate::lexer::token::Token;
 use crate::parser::Parser;
 use crate::parser::parser::ParseResult;
 

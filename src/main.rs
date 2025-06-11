@@ -1,9 +1,4 @@
-use rustc_tape4::lexer::Lexer;
-use rustc_tape4::parser::Parser;
-use rustc_tape4::semantic;
-use semantic::analyzer::analyzer::Analyzer;
-
-mod lexer;
+use rustc_tape4::{Lexer, Parser, SemanticAnalyzer};
 
 fn main() {
     let source = std::fs::read_to_string("tests/fixtures/sample.c").expect("could not read file");
@@ -15,9 +10,7 @@ fn main() {
     let mut parser = Parser::new(tokens);
     let program = parser.parse_program().expect("Parsing Failed");
 
-    // println!("{:#?}", program);
     // semantic analysis
-    let mut analyzer = Analyzer::new(&program);
-    let result = analyzer.analyze().expect("Analyzing Failed");
-    // println!("Hello, world!");
+    let mut analyzer = SemanticAnalyzer::new(&program);
+    let _result = analyzer.analyze().expect("Analyzing Failed");
 }

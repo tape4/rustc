@@ -1,5 +1,5 @@
 use crate::ast::program::Pos;
-use crate::lexer::Token;
+use crate::lexer::token::Token;
 use crate::parser::Parser;
 use crate::parser::parser::ParseResult;
 

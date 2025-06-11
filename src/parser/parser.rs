@@ -1,6 +1,5 @@
 use crate::ast::Program;
-use crate::lexer::Token;
-use crate::lexer::token::SpannedToken;
+use crate::lexer::{SpannedToken, Token};
 use crate::parser::error::ParserError;
 
 pub type ParseResult<T> = Result<T, ParserError>;

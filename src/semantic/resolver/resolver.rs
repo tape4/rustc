@@ -1,61 +1,173 @@
-use crate::ast::{Function, TypeSpecifier};
-use crate::semantic::resolver::error::ResolveError;
-use crate::semantic::symbol::error::SymbolError;
-use crate::semantic::symbol::symbol::{Symbol, SymbolKind, SymbolTable};
+use crate::ast::{Expr, Program, Stmt};
+use crate::semantic::analyzer::AnalyzeResult;
+use crate::semantic::analyzer::error::SemanticError;
+use crate::semantic::symbol::symbol::SymbolTable;
 
 pub struct Resolver {
     pub table: SymbolTable,
+    pub loop_depth: usize,
 }
 
 impl Resolver {
-    pub fn new() -> Self {
-        Resolver {
-            table: SymbolTable::new(),
+    pub fn resolve_program(&mut self, prog: &Program) -> AnalyzeResult<()> {
+        // 함수 선언 등록
+        for func in &prog.functions {
+            self.declare_function(func)
+                .map_err(|_| SemanticError::DuplicateDeclaration {
+                    name: func.name.clone(),
+                })?;
         }
+        // 함수별 스코프·본문 검사
+        for func in &prog.functions {
+            self.push_scope();
+            for param in &func.params {
+                self.declare_variable(&param.name, &param.ty).map_err(|_| {
+                    SemanticError::DuplicateDeclaration {
+                        name: param.name.clone(),
+                    }
+                })?;
+            }
+            self.resolve_block(&Stmt::Block(func.body.clone()))?;
+            self.pop_scope();
+        }
+        Ok(())
     }
 
-    // 함수 선언을 심볼 테이블에 추가
-    pub fn declare_function(&mut self, func: &Function) -> Result<(), SymbolError> {
-        let name = func.name.clone();
-        let return_ty = func.return_ty.clone();
-        let param_types: Vec<TypeSpecifier> =
-            func.params.iter().map(|param| param.ty.clone()).collect();
-
-        let symbol = Symbol {
-            ty: return_ty,
-            kind: SymbolKind::Function { param_types },
-        };
-
-        self.table.declare(name, symbol)
-    }
-
-    // 변수 선언을 심볼 테이블에 추가
-    pub fn declare_variable(&mut self, name: &str, ty: &TypeSpecifier) -> Result<(), SymbolError> {
-        let symbol = Symbol {
-            ty: ty.clone(),
-            kind: SymbolKind::Variable,
-        };
-
-        let result = self.table.declare(name.to_string(), symbol);
-        result
-    }
-
-    // 식별자 참조 시 심볼 테이블 조회
-    pub fn resolve_identifier(&mut self, identifier: &str) -> Result<&Symbol, ResolveError> {
-        if let Some(found_symbol) = self.table.lookup(identifier) {
-            Ok(found_symbol)
+    fn resolve_block(&mut self, stmt: &Stmt) -> Result<(), SemanticError> {
+        if let Stmt::Block(block) = stmt {
+            for s in &block.statements {
+                self.resolve_stmt(s)?;
+            }
         } else {
-            Err(ResolveError::UndefinedSymbol {
-                name: identifier.to_string(),
-            })
+            // println!("{:?}", stmt);
+            self.resolve_stmt(stmt)?;
         }
+        Ok(())
     }
 
-    pub fn push_scope(&mut self) {
-        self.table.push_scope();
+    fn resolve_stmt(&mut self, stmt: &Stmt) -> Result<(), SemanticError> {
+        match stmt {
+            Stmt::ExprStmt(expr) => {
+                if let Some(expr_opt) = expr {
+                    self.resolve_expr(expr_opt)?
+                }
+            }
+            Stmt::If {
+                cond,
+                then_branch,
+                else_branch,
+            } => {
+                self.resolve_expr(cond)?;
+                self.resolve_block(then_branch)?;
+                if let Some(else_branch_opt) = else_branch {
+                    self.resolve_block(else_branch_opt)?;
+                }
+            }
+            Stmt::While { cond, body } => {
+                self.loop_depth += 1;
+                self.resolve_expr(cond)?;
+                self.resolve_stmt(body)?;
+                self.loop_depth -= 1;
+            }
+            Stmt::Return(expr) => {
+                if let Some(expr_opt) = expr {
+                    self.resolve_expr(expr_opt)?;
+                }
+            }
+            Stmt::Block(inner_stmts) => {
+                self.resolve_block(&Stmt::Block(inner_stmts.clone()))?;
+            }
+            Stmt::For {
+                init,
+                cond,
+                step,
+                body,
+            } => {
+                self.loop_depth += 1;
+                self.push_scope();
+                if let Some(init_stmt) = init {
+                    self.resolve_stmt(init_stmt)?;
+                }
+                if let Some(cond_expr) = cond {
+                    self.resolve_expr(cond_expr)?;
+                }
+                self.resolve_stmt(body)?;
+                if let Some(step_expr) = step {
+                    self.resolve_expr(step_expr)?;
+                }
+                self.pop_scope();
+                self.loop_depth -= 1;
+            }
+            Stmt::Declaration { ty, declarators } => {
+                for declarator in declarators {
+                    self.declare_variable(&declarator.name, ty).map_err(|_| {
+                        SemanticError::DuplicateDeclaration {
+                            name: declarator.name.clone(),
+                        }
+                    })?;
+                    if let Some(init_expr) = &declarator.init {
+                        self.resolve_expr(&init_expr)?;
+                    }
+                }
+            }
+            Stmt::Continue => {
+                if self.loop_depth == 0 {
+                    return Err(SemanticError::InvalidContinue);
+                }
+            }
+            Stmt::Break => {
+                if self.loop_depth == 0 {
+                    return Err(SemanticError::InvalidBreak);
+                }
+            }
+        }
+        Ok(())
     }
 
-    pub fn pop_scope(&mut self) {
-        self.table.pop_scope();
+    fn resolve_expr(&mut self, expr: &Expr) -> Result<(), SemanticError> {
+        match expr {
+            Expr::Ident(name) => {
+                self.resolve_identifier(name)
+                    .map_err(|_| SemanticError::UndefinedSymbol { name: name.clone() })?;
+            }
+            Expr::BinaryOp { lhs, rhs, .. } => {
+                self.resolve_expr(lhs)?;
+                self.resolve_expr(rhs)?;
+            }
+            Expr::UnaryPostfixOp { lhs, .. } => {
+                self.resolve_expr(lhs)?;
+            }
+            Expr::UnaryPrefixOp { rhs, .. } => {
+                self.resolve_expr(rhs)?;
+            }
+            Expr::Assignment { left, right, .. } => {
+                self.resolve_expr(left)?;
+                self.resolve_expr(right)?;
+            }
+            Expr::ArrayIndex { array, index } => {
+                self.resolve_expr(array)?;
+                self.resolve_expr(index)?;
+            }
+            Expr::Call { func, args, .. } => match func.as_ref() {
+                Expr::Ident(func_name) => {
+                    self.resolve_identifier(func_name).map_err(|_| {
+                        SemanticError::UndefinedSymbol {
+                            name: func_name.clone(),
+                        }
+                    })?;
+                    for arg in args {
+                        self.resolve_expr(arg)?;
+                    }
+                }
+                _ => unreachable!(),
+            },
+            Expr::InitializerList(expr_list) => {
+                for e in expr_list {
+                    self.resolve_expr(e)?;
+                }
+            }
+            Expr::CharLiteral(_) | Expr::IntLiteral(_) => {}
+        }
+        Ok(())
     }
 }

@@ -1,6 +1,7 @@
 use super::token::{LexError, SpannedToken, Token, lookup_ident};
 
 /// 렉서 구조
+#[allow(dead_code)]
 pub struct Lexer {
     input: Vec<char>, // full codes
     pos: usize,       // current position
@@ -10,6 +11,7 @@ pub struct Lexer {
     column: usize,    // current column
 }
 
+#[allow(dead_code)]
 impl Lexer {
     pub fn new(input: &str) -> Self {
         let mut l = Lexer {

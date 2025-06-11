@@ -1,7 +1,6 @@
 use rustc_tape4::ast::{Expr, Program, Stmt};
 use rustc_tape4::lexer::{Lexer, Token};
-use rustc_tape4::parser::Parser;
-use rustc_tape4::parser::parser::ParseResult;
+use rustc_tape4::parser::{ParseResult, Parser};
 
 /// 입력 전체를 순환하며 토큰을 수집
 pub fn collect_tokens(input: &str) -> Vec<Token> {

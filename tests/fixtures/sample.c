@@ -13,6 +13,7 @@ int factorial(int n) {
 char to_uppercase(char c) {
     // 'a'..'z' 범위이면 대문자로 변환
     if (c >= 'a' && c <= 'z') {
+//        return '1';
         return c - ('a' - 'A');
     }
     return c;
@@ -75,7 +76,6 @@ void new() {
         count += 1;
     }
 
-    int a = '3';
-
+    int *c = &count;
     count = count+++n_count;
 }

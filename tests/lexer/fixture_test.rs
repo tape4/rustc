@@ -400,6 +400,75 @@ fn test_sample_c_tokens() {
     // }
     assert_eq!(next_token(), Token::RBrace);
 
+    // void new() {
+    assert_eq!(next_token(), Token::Void);
+    assert_eq!(next_token(), Token::Ident("new".into()));
+    assert_eq!(next_token(), Token::LParen);
+    assert_eq!(next_token(), Token::RParen);
+    assert_eq!(next_token(), Token::LBrace);
+
+    //     int count = 3;
+    assert_eq!(next_token(), Token::Int);
+    assert_eq!(next_token(), Token::Ident("count".into()));
+    assert_eq!(next_token(), Token::Assign);
+    assert_eq!(next_token(), Token::IntLiteral(3));
+    assert_eq!(next_token(), Token::Semicolon);
+
+    //     int n_count = 4;
+    assert_eq!(next_token(), Token::Int);
+    assert_eq!(next_token(), Token::Ident("n_count".into()));
+    assert_eq!(next_token(), Token::Assign);
+    assert_eq!(next_token(), Token::IntLiteral(4));
+    assert_eq!(next_token(), Token::Semicolon);
+
+    //     for (int i = -3; i < 5; i++) {
+    assert_eq!(next_token(), Token::For);
+    assert_eq!(next_token(), Token::LParen);
+    assert_eq!(next_token(), Token::Int);
+    assert_eq!(next_token(), Token::Ident("i".into()));
+    assert_eq!(next_token(), Token::Assign);
+    assert_eq!(next_token(), Token::Minus);
+    assert_eq!(next_token(), Token::IntLiteral(3));
+    assert_eq!(next_token(), Token::Semicolon);
+    assert_eq!(next_token(), Token::Ident("i".into()));
+    assert_eq!(next_token(), Token::Lt);
+    assert_eq!(next_token(), Token::IntLiteral(5));
+    assert_eq!(next_token(), Token::Semicolon);
+    assert_eq!(next_token(), Token::Ident("i".into()));
+    assert_eq!(next_token(), Token::Increment);
+    assert_eq!(next_token(), Token::RParen);
+    assert_eq!(next_token(), Token::LBrace);
+
+    //         count += 1;
+    assert_eq!(next_token(), Token::Ident("count".into()));
+    assert_eq!(next_token(), Token::PlusAssign);
+    assert_eq!(next_token(), Token::IntLiteral(1));
+    assert_eq!(next_token(), Token::Semicolon);
+
+    //     }
+    assert_eq!(next_token(), Token::RBrace);
+
+    //     int *c = &count;
+    assert_eq!(next_token(), Token::Int);
+    assert_eq!(next_token(), Token::Asterisk);
+    assert_eq!(next_token(), Token::Ident("c".into()));
+    assert_eq!(next_token(), Token::Assign);
+    assert_eq!(next_token(), Token::Ampersand);
+    assert_eq!(next_token(), Token::Ident("count".into()));
+    assert_eq!(next_token(), Token::Semicolon);
+
+    //     count = count+++n_count;
+    assert_eq!(next_token(), Token::Ident("count".into()));
+    assert_eq!(next_token(), Token::Assign);
+    assert_eq!(next_token(), Token::Ident("count".into()));
+    assert_eq!(next_token(), Token::Increment); // postfix ++
+    assert_eq!(next_token(), Token::Plus); // +
+    assert_eq!(next_token(), Token::Ident("n_count".into()));
+    assert_eq!(next_token(), Token::Semicolon);
+
+    // }
+    assert_eq!(next_token(), Token::RBrace);
+
     // End with EOF
     assert_eq!(next_token(), Token::EOF);
 }

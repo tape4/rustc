@@ -15,6 +15,7 @@ pub struct SpannedToken {
 }
 
 /// Token types
+#[allow(dead_code)]
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     // Special
@@ -88,6 +89,7 @@ pub enum Token {
 }
 
 /// Lookup identifier keyword
+#[allow(dead_code)]
 pub fn lookup_ident(ident: &str) -> Token {
     match ident {
         "int" => Token::Int,
