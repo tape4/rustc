@@ -1,3 +1,5 @@
+use std::fmt;
+
 /// Lex Errors
 #[derive(Debug, PartialEq, Clone)]
 pub enum LexError {
@@ -5,6 +7,19 @@ pub enum LexError {
     UnterminatedCharLiteral,
     // 잘못된 정수 리터럴 (파싱 실패)
     InvalidNumericLiteral(String),
+}
+
+impl fmt::Display for LexError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            LexError::UnterminatedCharLiteral => {
+                write!(f, "missing terminating ' character")
+            }
+            LexError::InvalidNumericLiteral(lit) => {
+                write!(f, "invalid numeric literal '{}'", lit)
+            }
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]

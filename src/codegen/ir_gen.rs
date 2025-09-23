@@ -6,6 +6,24 @@ use crate::codegen::ir::{
     BinaryOp, IrBlock, IrFunction, IrInstruction, IrOperand, IrProgram, IrType, UnaryOp,
 };
 use std::collections::HashMap;
+use std::fmt;
+
+#[derive(Debug)]
+pub enum IrGenError {
+    InternalError(String),
+}
+
+impl fmt::Display for IrGenError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            IrGenError::InternalError(msg) => write!(f, "internal compiler error: {}", msg),
+        }
+    }
+}
+
+impl std::error::Error for IrGenError {}
+
+pub type IrGenResult<T> = Result<T, IrGenError>;
 
 pub struct IrGenerator {
     current_function: Option<String>,
@@ -32,16 +50,16 @@ impl IrGenerator {
         }
     }
 
-    pub fn generate(&mut self, program: &Program) -> IrProgram {
+    pub fn generate(&mut self, program: &Program) -> IrGenResult<IrProgram> {
         for func in &program.functions {
-            self.generate_function(func);
+            self.generate_function(func)?;
         }
-        IrProgram {
+        Ok(IrProgram {
             functions: self.functions.clone(),
-        }
+        })
     }
 
-    fn generate_function(&mut self, func: &Function) {
+    fn generate_function(&mut self, func: &Function) -> IrGenResult<()> {
         self.current_function = Some(func.name.clone());
         self.local_vars.clear();
         self.temp_counter = 0;
@@ -96,6 +114,7 @@ impl IrGenerator {
             blocks: self.current_blocks.clone(),
         };
         self.functions.push(ir_func);
+        Ok(())
     }
 
     fn generate_block(&mut self, block: &Block) {
