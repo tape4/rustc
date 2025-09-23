@@ -1,4 +1,4 @@
-use rustc_tape4::{Lexer, Parser, SemanticAnalyzer};
+use rustc_tape4::{IrGenerator, Lexer, Parser, SemanticAnalyzer};
 
 fn main() {
     let source = std::fs::read_to_string("tests/fixtures/sample.c").expect("could not read file");
@@ -13,4 +13,11 @@ fn main() {
     // semantic analysis
     let mut analyzer = SemanticAnalyzer::new(&program);
     let _result = analyzer.analyze().expect("Analyzing Failed");
+
+    // IR generation
+    let mut ir_gen = IrGenerator::new();
+    let ir_program = ir_gen.generate(&program);
+
+    // output IR code
+    println!("{}", ir_program);
 }

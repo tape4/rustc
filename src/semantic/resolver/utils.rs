@@ -21,7 +21,10 @@ impl Resolver {
 
         if let Some(existing) = self.table.lookup(&name) {
             // 같은 함수 시그니처인지 검사
-            if let SymbolKind::Function { param_types: existing_params } = &existing.kind {
+            if let SymbolKind::Function {
+                param_types: existing_params,
+            } = &existing.kind
+            {
                 if existing.ty == return_ty && *existing_params == param_types {
                     // 시그니처 일치: 중복 선언이 아니므로 무시
                     return Ok(());
